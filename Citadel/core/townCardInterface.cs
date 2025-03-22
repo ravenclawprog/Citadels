@@ -2,6 +2,7 @@ namespace Citadel;
 
 public enum QuarterType
 {
+    Default,
     Royal,
     Commercial,
     Religious,

@@ -1,3 +1,5 @@
 bin/
 .vscode/
-obj/
+obj/.vscode
+Citadel/bin
+Citadel/obj
