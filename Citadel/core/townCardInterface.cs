@@ -8,8 +8,8 @@ public enum QuarterType
     Religious,
     Military
 };
-public interface ITownCard  : ICard
+public interface ITownCard : ICard
 {
-    public QuarterType TypeOfQuarter{get;set;}
-    public int Price{get;set;}
+    public QuarterType TypeOfQuarter { get; }
+    public int Price { get; }
 }
