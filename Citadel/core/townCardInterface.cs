@@ -6,7 +6,8 @@ public enum QuarterType
     Royal,
     Commercial,
     Religious,
-    Military
+    Military,
+    Special
 };
 public interface ITownCard : ICard
 {

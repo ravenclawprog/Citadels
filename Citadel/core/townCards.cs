@@ -10,7 +10,7 @@ public class TownCard : ITownCard
     public string Description { get { return "I can rule!"; } }
     public void Action()
     {
-        Console.WriteLine("Name:{0}\nDescription:{1}", _name, _description);
+        Console.WriteLine("Name:{0}\nDescription:{1}\nQuearter type:{2}", _name, _description, _quarterType.ToString());
     }
     public TownCard(QuarterType q, int price, String name = "Default town card", String description = "Default town card description")
     {
