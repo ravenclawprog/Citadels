@@ -1,18 +1,18 @@
-namespace Citadel;
-
-public abstract class GamePrerequisite
+namespace Citadel
 {
-    public abstract List<IPlayerCard> GeneratePlayerCardDeck();
-    public abstract List<ITownCard> GenerateTownCardDeck();
-}
-
-public class BaseGamePrerequisite : GamePrerequisite
-{
-    public override List<IPlayerCard> GeneratePlayerCardDeck()
+    public abstract class GamePrerequisite
     {
-        List<IPlayerCard> ret =
-        [
-            BasicPlayerCardCreator.CreateCard<AssassinPlayerCard>(),
+        public abstract List<IPlayerCard> GeneratePlayerCardDeck();
+        public abstract List<ITownCard> GenerateTownCardDeck();
+    }
+
+    public class BaseGamePrerequisite : GamePrerequisite
+    {
+        public override List<IPlayerCard> GeneratePlayerCardDeck()
+        {
+            List<IPlayerCard> ret =
+            [
+                BasicPlayerCardCreator.CreateCard<AssassinPlayerCard>(),
             BasicPlayerCardCreator.CreateCard<ThiefPlayerCard>(),
             BasicPlayerCardCreator.CreateCard<SorcererPlayerCard>(),
             BasicPlayerCardCreator.CreateCard<KingPlayerCard>(),
@@ -21,14 +21,14 @@ public class BaseGamePrerequisite : GamePrerequisite
             BasicPlayerCardCreator.CreateCard<ArchitectPlayerCard>(),
             BasicPlayerCardCreator.CreateCard<СondottierePlayerCard>(),
         ];
-        return ret;
-    }
-    public override List<ITownCard> GenerateTownCardDeck()
-    {
-        TownCardCreator townGenerator = new BasicTownCardCreator();
-        List<ITownCard> ret =
-        [
-            .. townGenerator.CreateSeveralCard(QuarterType.Commercial, 1, "Tavern", 5),
+            return ret;
+        }
+        public override List<ITownCard> GenerateTownCardDeck()
+        {
+            TownCardCreator townGenerator = new BasicTownCardCreator();
+            List<ITownCard> ret =
+            [
+                .. townGenerator.CreateSeveralCard(QuarterType.Commercial, 1, "Tavern", 5),
             .. townGenerator.CreateSeveralCard(QuarterType.Commercial, 2, "Market", 4),
             .. townGenerator.CreateSeveralCard(QuarterType.Commercial, 2, "Trading Post", 3),
             .. townGenerator.CreateSeveralCard(QuarterType.Commercial, 3, "Docks", 3),
@@ -57,6 +57,7 @@ public class BaseGamePrerequisite : GamePrerequisite
             .. townGenerator.CreateSeveralCard(QuarterType.Special, 7, "University", 1),
             .. townGenerator.CreateSeveralCard(QuarterType.Special, 8, "Dragon Gate", 1),
         ];
-        return ret;
+            return ret;
+        }
     }
 }

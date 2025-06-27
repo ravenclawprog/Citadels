@@ -9,6 +9,11 @@ namespace Citadel
             Console.WriteLine("I get the crown!");
         }
         public QuarterType FavoriteQuarterType { get { return QuarterType.Royal; } }
+        public object Clone()
+        {
+            var copy = new KingPlayerCard();
+            return copy;
+        }
     }
     public class AssassinPlayerCard : IPlayerCard
     {
@@ -19,6 +24,11 @@ namespace Citadel
             Console.WriteLine("Oh yes, here i go again");
         }
         public QuarterType FavoriteQuarterType { get { return QuarterType.Default; } }
+        public object Clone()
+        {
+            var copy = new AssassinPlayerCard();
+            return copy;
+        }
     }
     public class ThiefPlayerCard : IPlayerCard
     {
@@ -29,6 +39,11 @@ namespace Citadel
             Console.WriteLine("All your gold are belong to mine");
         }
         public QuarterType FavoriteQuarterType { get { return QuarterType.Default; } }
+        public object Clone()
+        {
+            var copy = new ThiefPlayerCard();
+            return copy;
+        }
     }
     public class SorcererPlayerCard : IPlayerCard
     {
@@ -39,6 +54,11 @@ namespace Citadel
             Console.WriteLine("Now i owe a big deck");
         }
         public QuarterType FavoriteQuarterType { get { return QuarterType.Default; } }
+        public object Clone()
+        {
+            var copy = new SorcererPlayerCard();
+            return copy;
+        }
     }
     public class BishopPlayerCard : IPlayerCard
     {
@@ -49,6 +69,11 @@ namespace Citadel
             Console.WriteLine("!!!");
         }
         public QuarterType FavoriteQuarterType { get { return QuarterType.Religious; } }
+        public object Clone()
+        {
+            var copy = new BishopPlayerCard();
+            return copy;
+        }
     }
     public class СondottierePlayerCard : IPlayerCard
     {
@@ -59,6 +84,11 @@ namespace Citadel
             Console.WriteLine("Wreck it all");
         }
         public QuarterType FavoriteQuarterType { get { return QuarterType.Military; } }
+        public object Clone()
+        {
+            var copy = new СondottierePlayerCard();
+            return copy;
+        }
     }
     public class ArchitectPlayerCard : IPlayerCard
     {
@@ -69,6 +99,11 @@ namespace Citadel
             Console.WriteLine("We can built it all");
         }
         public QuarterType FavoriteQuarterType { get { return QuarterType.Default; } }
+        public object Clone()
+        {
+            var copy = new ArchitectPlayerCard();
+            return copy;
+        }
     }
     public class MerchantPlayerCard : IPlayerCard
     {
@@ -79,5 +114,10 @@ namespace Citadel
             Console.WriteLine("I can buy everything");
         }
         public QuarterType FavoriteQuarterType { get { return QuarterType.Commercial; } }
+        public object Clone()
+        {
+            var copy = new MerchantPlayerCard();
+            return copy;
+        }
     }
 }

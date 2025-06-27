@@ -1,24 +1,26 @@
-namespace Citadel;
-
-public abstract class TownCardCreator
+namespace Citadel
 {
-    public abstract ITownCard CreateCard(QuarterType q, int price, String name);
-    public abstract List<ITownCard> CreateSeveralCard(QuarterType q, int price, String name, int quantity);
-}
 
-public class BasicTownCardCreator : TownCardCreator
-{
-    public override ITownCard CreateCard(QuarterType q, int price, String name)
+    public abstract class TownCardCreator
     {
-        return new TownCard(q, price, name);
+        public abstract ITownCard CreateCard(QuarterType q, int price, String name);
+        public abstract List<ITownCard> CreateSeveralCard(QuarterType q, int price, String name, int quantity);
     }
-    public override List<ITownCard> CreateSeveralCard(QuarterType q, int price, String name, int quantity = 1)
+
+    public class BasicTownCardCreator : TownCardCreator
     {
-        List<ITownCard> ret = new List<ITownCard>();
-        for (int i = 0; i < quantity; i++)
+        public override ITownCard CreateCard(QuarterType q, int price, String name)
         {
-            ret.Add(new TownCard(q, price, name));
+            return new TownCard(q, price, name);
         }
-        return ret; 
+        public override List<ITownCard> CreateSeveralCard(QuarterType q, int price, String name, int quantity = 1)
+        {
+            List<ITownCard> ret = new List<ITownCard>();
+            for (int i = 0; i < quantity; i++)
+            {
+                ret.Add(new TownCard(q, price, name));
+            }
+            return ret;
+        }
     }
 }

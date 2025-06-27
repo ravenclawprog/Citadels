@@ -3,7 +3,8 @@ namespace Citadel;
 
 public class Player
 {
-    Player(int gold, bool crown, String? name = null, IPlayerCard? plCard = null, List<ITownCard>? townCardDeck = null, List<ITownCard>? ownTown = null)
+    private static int idCount = 0;
+    public Player(int gold, bool crown, String? name = null, IPlayerCard? plCard = null, List<ITownCard>? townCardDeck = null, List<ITownCard>? ownTown = null)
     {
         _goldCount = gold;
         _hasCrown = crown;
@@ -23,6 +24,7 @@ public class Player
         {
             _ownTown.AddRange(ownTown);
         }
+        idCount++;
     }
     bool Build(int index)
     {
@@ -30,7 +32,7 @@ public class Player
         {
             return false;
         }
-        ITownCard  townCard = _townCardsDeck[index];
+        ITownCard townCard = _townCardsDeck[index];
         if (_goldCount < townCard.Price)
         {
             return false;
@@ -46,10 +48,18 @@ public class Player
     private IPlayerCard? _playerCard = null;
     private List<ITownCard> _townCardsDeck = new List<ITownCard>();
     private List<ITownCard> _ownTown = new List<ITownCard>();
-
+    private int _id = idCount;
     public int GetNumberOfGold()
     {
         return _goldCount;
+    }
+    public int GetNumberOfTownCards()
+    {
+        return _townCardsDeck.Count;
+    }
+    public List<ITownCard> GetOwnCity()
+    {
+        return _ownTown.Select(s => (ITownCard)s.Clone()).ToList();
     }
     public void AddGold(int gold)
     {
@@ -60,5 +70,12 @@ public class Player
         _goldCount -= gold;
         if (_goldCount < 0) _goldCount = 0;
     }
-
+    public int getId()
+    {
+        return _id;
+    }
+    public void setCrown()
+    {
+        _hasCrown = true;
+    }
 }

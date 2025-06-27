@@ -1,7 +1,10 @@
-namespace Citadel;
-public interface ICard
+namespace Citadel
 {
-    public string Name{get; }
-    public string Description{get;}
-    public void Action();
+
+    public interface ICard : ICloneable
+    {
+        public string Name { get; }
+        public string Description { get; }
+        public void Action();
+    }
 }

@@ -1,6 +1,5 @@
-﻿namespace Citadel;
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Citadel;
 class Program
 {
     static void Main(string[] args)

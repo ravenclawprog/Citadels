@@ -1,9 +1,10 @@
-namespace Citadel;
-
-public class BasicPlayerCardCreator
+namespace Citadel
 {
-    static public IPlayerCard CreateCard<T>() where T : new()
+    public class BasicPlayerCardCreator
     {
-        return (IPlayerCard) new T();
+        static public IPlayerCard CreateCard<T>() where T : new()
+        {
+            return (IPlayerCard)new T();
+        }
     }
 }
