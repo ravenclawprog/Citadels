@@ -15,4 +15,19 @@ namespace Citadel
         {
         }
     }
+    public class WrongPlayerCard : Exception
+    {
+        public WrongPlayerCard()
+        {
+        }
+        public WrongPlayerCard(string message)
+        : base(message)
+        {
+        }
+
+        public WrongPlayerCard(string message, Exception inner)
+        : base(message, inner)
+        {
+        }
+    }
 }

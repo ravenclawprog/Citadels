@@ -120,4 +120,19 @@ namespace Citadel
             return copy;
         }
     }
+    public class NullPlayerCard : IPlayerCard
+    {
+        public string Name { get { return "Dummy"; } }
+        public string Description { get { return "Dummy description"; } }
+        public void Action()
+        {
+            Console.WriteLine("Nothing");
+        }
+        public QuarterType FavoriteQuarterType { get { return QuarterType.Default; } }
+        public object Clone()
+        {
+            var copy = new NullPlayerCard();
+            return copy;
+        }
+    }
 }

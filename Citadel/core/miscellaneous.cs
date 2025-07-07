@@ -33,12 +33,13 @@ namespace Citadel
 
             using (var stringWriter = new StringWriter())
             {
-                using (var xmlWriter = XmlWriter.Create(stringWriter,new XmlWriterSettings{Indent = true}))
+                using (var xmlWriter = XmlWriter.Create(stringWriter, new XmlWriterSettings { Indent = true }))
                 {
                     xmlSerializer.Serialize(xmlWriter, value);
                     return stringWriter.ToString();
-                }    
+                }
             }
         }
     }
+    
 }

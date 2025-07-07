@@ -1,93 +1,127 @@
 using System.Xml.Serialization;
 
-namespace Citadel;
-
-public partial class Game: IXmlSerializable
+namespace Citadel
 {
-    private const int maxNumOfBuildingToWin = 7;
-    private const int prepareStartPlayerGold = 2;
-    private const int prepareStartTownCardCount = 4;
-    public Game()
+    using DumpCardRuleType = Dictionary<int, (int open, int close)>;
+    public partial class Game : IXmlSerializable
     {
-        _players = new List<Player>();
-        GamePrerequisite gp = new BaseGamePrerequisite();
-        _playerCardsDeck = gp.GeneratePlayerCardDeck();
-        _townCardsDeck = gp.GenerateTownCardDeck();
-        _dropPlayerCards = new List<IPlayerCard>();
-        _currentPlayer = null;
-        _roundNumber = 0;
-    }
-    public Game(int numberOfPlayers)
-    {
-        _players = new List<Player>();
-        GamePrerequisite gp = new BaseGamePrerequisite();
-        _playerCardsDeck = gp.GeneratePlayerCardDeck();
-        _townCardsDeck = gp.GenerateTownCardDeck();
-        _dropPlayerCards = new List<IPlayerCard>();
-        _currentPlayer = null;
-        _roundNumber = 0;
-        StartGame(numberOfPlayers);
-    }
-    List<Player> _players;
-    Player? _currentPlayer;
-    List<IPlayerCard> _playerCardsDeck;
-    List<ITownCard> _townCardsDeck;
-    List<IPlayerCard> _dropPlayerCards;
-    int _roundNumber;
-    public void StartGame(int numberOfPlayers)
-    {
-        if (numberOfPlayers < 4 || numberOfPlayers > 8)
+        private const int maxNumOfBuildingToWin = 7;
+        private const int prepareStartPlayerGold = 2;
+        private const int prepareStartTownCardCount = 4;
+        private readonly DumpCardRuleType dumpCardRule = new()
         {
-            throw new IncorrectNumberOfPlayers("Number of players must be more or equal 4 and less or equal 8");
+            {4, new (2,1) },
+            {5, new (1,1) },
+            {6, new (0,1) },
+            {7, new (0,1) },
+            {8, new (0,1) }
+        };
+        public Game()
+        {
+            _players = new List<Player>();
+            GamePrerequisite gp = new BaseGamePrerequisite();
+            _playerCardsDeck = gp.GeneratePlayerCardDeck();
+            _townCardsDeck = gp.GenerateTownCardDeck();
+            _dropPlayerCardsOpen = new List<IPlayerCard>();
+            _dropPlayerCardsClose = new List<IPlayerCard>();
+            _currentPlayer = null;
+            _roundNumber = 0;
         }
-        for (int i = 0; i < numberOfPlayers; i++)
+        public Game(int numberOfPlayers)
         {
-            Player playerToAdd = new(0, false);
-            _players.Add(playerToAdd);
-            // OnPreparation += playerToAdd.OnPreparation;
+            _players = new List<Player>();
+            GamePrerequisite gp = new BaseGamePrerequisite();
+            _playerCardsDeck = gp.GeneratePlayerCardDeck();
+            _townCardsDeck = gp.GenerateTownCardDeck();
+            _dropPlayerCardsOpen = new List<IPlayerCard>();
+            _dropPlayerCardsClose = new List<IPlayerCard>();
+            _currentPlayer = null;
+            _roundNumber = 0;
+            StartGame(numberOfPlayers);
         }
-        _currentPlayer = _players[0];
-        _roundNumber = 0;
-        RandomizeDecks();
-        ChoosingCrown();
-        Preparation();
-        _roundNumber = 0;
-    }
-    public void EndGame()
-    {
-
-    }
-    private void RandomizeDecks()
-    {
-        ListRandomizer.Permutate<ITownCard>(ref _townCardsDeck);
-        ListRandomizer.Permutate<IPlayerCard>(ref _playerCardsDeck);
-    }
-    protected void ChoosingCrown()
-    {
-        // TODO: strategy pattern
-        int maxId = 0;
-        Player crownedPlayer = _players[0];
-        foreach (var player in _players)
+        List<Player> _players;
+        Player? _currentPlayer;
+        List<IPlayerCard> _playerCardsDeck;
+        List<ITownCard> _townCardsDeck;
+        List<IPlayerCard> _dropPlayerCardsOpen;
+        List<IPlayerCard> _dropPlayerCardsClose;
+        int _roundNumber;
+        public void StartGame(int numberOfPlayers)
         {
-            if (player.getId() > maxId)
+            if (numberOfPlayers < 4 || numberOfPlayers > 8)
             {
-                maxId = player.getId();
-                crownedPlayer = player;
+                throw new IncorrectNumberOfPlayers("Number of players must be more or equal 4 and less or equal 8");
+            }
+            for (int i = 0; i < numberOfPlayers; i++)
+            {
+                Player playerToAdd = new(0, false);
+                _players.Add(playerToAdd);
+                // OnPreparation += playerToAdd.OnPreparation;
+            }
+            _currentPlayer = _players[0];
+            _roundNumber = 0;
+            RandomizeDecks();
+            ChoosingCrown();
+            Preparation();
+            _roundNumber = 0;
+        }
+        public void EndGame()
+        {
+
+        }
+        private void RandomizeDecks()
+        {
+            ListRandomizer.Permutate<ITownCard>(ref _townCardsDeck);
+            ListRandomizer.Permutate<IPlayerCard>(ref _playerCardsDeck);
+        }
+        protected void ChoosingCrown()
+        {
+            // TODO: strategy pattern
+            int maxId = 0;
+            Player crownedPlayer = _players[0];
+            foreach (var player in _players)
+            {
+                if (player.getId() > maxId)
+                {
+                    maxId = player.getId();
+                    crownedPlayer = player;
+                }
+            }
+            crownedPlayer.setCrown();
+        }
+        protected void Preparation()
+        {
+            // TODO: pattern strategy
+            for (int i = 0; i < _players.Count; i++)
+            {
+                PreparationsEventArgs e = new PreparationsEventArgs();
+                e.goldToAdd = prepareStartPlayerGold;
+                e.startTownCardDeck.AddRange(_townCardsDeck.Slice(0, prepareStartTownCardCount));
+                _townCardsDeck.RemoveRange(0, prepareStartTownCardCount);
+                _players[0].OnPreparation(this, e);
+            }
+            int numberOfOpened = dumpCardRule[_players.Count].open;
+            int numberOfClosed = dumpCardRule[_players.Count].close;
+
+            for (int i = 0; i < numberOfOpened; i++)
+            {
+                if (_playerCardsDeck[0].FavoriteQuarterType == QuarterType.Royal)
+                {
+                    _dropPlayerCardsOpen.Add(_playerCardsDeck[1]);
+                    _playerCardsDeck.Remove(_playerCardsDeck[1]);
+                }
+                else
+                {
+                    _dropPlayerCardsOpen.Add(_playerCardsDeck[0]);
+                    _playerCardsDeck.Remove(_playerCardsDeck[0]);
+                }
+            }
+            for (int i = 0; i < numberOfClosed; i++)
+            {
+                _dropPlayerCardsClose.Add(_playerCardsDeck[0]);
+                _playerCardsDeck.Remove(_playerCardsDeck[0]);
             }
         }
-        crownedPlayer.setCrown();
-    }
-    protected void Preparation()
-    {
-        // TODO: pattern strategy
-        for (int i = 0; i < _players.Count; i++)
-        {
-            PreparationsEventArgs e = new PreparationsEventArgs();
-            e.goldToAdd = prepareStartPlayerGold;
-            e.startTownCardDeck.AddRange(_townCardsDeck.Slice(0, prepareStartTownCardCount));
-            _townCardsDeck.RemoveRange(0, prepareStartTownCardCount);
-            _players[0].OnPreparation(this, e);
-        }
-    }  
 
+    }
 }

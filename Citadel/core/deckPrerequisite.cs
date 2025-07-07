@@ -4,10 +4,12 @@ namespace Citadel
     {
         public abstract List<IPlayerCard> GeneratePlayerCardDeck();
         public abstract List<ITownCard> GenerateTownCardDeck();
+        public abstract int Sequence(IPlayerCard playerCard);
     }
 
     public class BaseGamePrerequisite : GamePrerequisite
     {
+
         public override List<IPlayerCard> GeneratePlayerCardDeck()
         {
             List<IPlayerCard> ret =
@@ -59,5 +61,41 @@ namespace Citadel
         ];
             return ret;
         }
+        public override int Sequence(IPlayerCard playerCard) {
+            if (playerCard is AssassinPlayerCard)
+            {
+                return 1;
+            }
+            if (playerCard is ThiefPlayerCard)
+            {
+                return 2;
+            }
+            if (playerCard is SorcererPlayerCard)
+            {
+                return 3;
+            }
+            if (playerCard is KingPlayerCard)
+            {
+                return 4;
+            }
+            if (playerCard is BishopPlayerCard)
+            {
+                return 5;
+            }
+            if (playerCard is MerchantPlayerCard)
+            {
+                return 6;
+            }
+            if (playerCard is ArchitectPlayerCard)
+            {
+                return 7;
+            }
+            if (playerCard is СondottierePlayerCard)
+            {
+                return 8;
+            }
+            throw new WrongPlayerCard("Unknown type of Player card:" + playerCard.GetType().ToString());
+        }
     }
+    
 }
