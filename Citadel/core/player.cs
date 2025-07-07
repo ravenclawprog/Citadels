@@ -1,13 +1,15 @@
 using System.Collections.Generic;
+using System.Linq.Expressions;
 namespace Citadel;
 
-public class Player
+public partial class Player
 {
     private static int idCount = 0;
-    public Player(int gold, bool crown, String? name = null, IPlayerCard? plCard = null, List<ITownCard>? townCardDeck = null, List<ITownCard>? ownTown = null)
+    public Player(int gold, bool crown, String? name = null, IPlayerCard? plCard = null, List<ITownCard>? townCardDeck = null, List<ITownCard>? ownTown = null, int? newId = null)
     {
         _goldCount = gold;
         _hasCrown = crown;
+        _firstGetMaxBuildings = false;
         if (name != null)
         {
             _name = name;
@@ -24,7 +26,15 @@ public class Player
         {
             _ownTown.AddRange(ownTown);
         }
-        idCount++;
+        if (newId != null)
+        {
+            _id = (int)newId;
+        }
+        else
+        {
+            idCount++;
+        }
+            
     }
     bool Build(int index)
     {
@@ -49,6 +59,7 @@ public class Player
     private List<ITownCard> _townCardsDeck = new List<ITownCard>();
     private List<ITownCard> _ownTown = new List<ITownCard>();
     private int _id = idCount;
+    private bool _firstGetMaxBuildings = false;
     public int GetNumberOfGold()
     {
         return _goldCount;
@@ -56,6 +67,10 @@ public class Player
     public int GetNumberOfTownCards()
     {
         return _townCardsDeck.Count;
+    }
+    public void AppendTownCard(ITownCard townCard)
+    {
+        _townCardsDeck.Add(townCard);
     }
     public List<ITownCard> GetOwnCity()
     {

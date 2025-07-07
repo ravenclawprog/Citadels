@@ -1,4 +1,8 @@
 using System;
+using System.IO;
+using System.Xml;
+using System.Xml.Serialization;
+
 namespace Citadel
 {
     public class ListRandomizer
@@ -16,6 +20,24 @@ namespace Citadel
                 T tmp = values[indexFirst];
                 values[indexFirst] = values[indexSecond];
                 values[indexSecond] = tmp;
+            }
+        }
+    }
+    public static class XmlExtension
+    {
+        public static string Serialize<T>(this T value)
+        {
+            if (value == null) return string.Empty;
+
+            var xmlSerializer = new XmlSerializer(typeof(T));
+
+            using (var stringWriter = new StringWriter())
+            {
+                using (var xmlWriter = XmlWriter.Create(stringWriter,new XmlWriterSettings{Indent = true}))
+                {
+                    xmlSerializer.Serialize(xmlWriter, value);
+                    return stringWriter.ToString();
+                }    
             }
         }
     }
