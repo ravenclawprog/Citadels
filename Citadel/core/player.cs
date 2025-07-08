@@ -1,14 +1,17 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Net.Mail;
 namespace Citadel;
 
 public partial class Player
 {
     private static int idCount = 0;
-    public Player(int gold, bool crown, String? name = null, IPlayerCard? plCard = null, List<ITownCard>? townCardDeck = null, List<ITownCard>? ownTown = null, int? newId = null)
+    public Player(int gold, bool crown, String? name = null, IPlayerCard? plCard = null, List<ITownCard>? townCardDeck = null, List<ITownCard>? ownTown = null, IViewer? viewer = null, int? newId = null)
     {
-        _goldCount = gold;
-        _hasCrown = crown;
+        // TODO: change tp 
+        Gold = gold;
+        Crown = crown;
+        _viewer = viewer;
         _firstGetMaxBuildings = false;
         if (name != null)
         {
@@ -28,13 +31,24 @@ public partial class Player
         }
         if (newId != null)
         {
-            _id = (int)newId;
+            Id = (int)newId;
         }
         else
         {
             idCount++;
         }
-            
+        if (viewer != null)
+        {
+            AttachViewer(viewer);            
+        }
+    }
+    ~Player()
+    {
+        if (_viewer != null)
+        {
+            DetachViewer(_viewer);            
+        }
+
     }
     bool Build(int index)
     {
@@ -43,13 +57,13 @@ public partial class Player
             return false;
         }
         ITownCard townCard = _townCardsDeck[index];
-        if (_goldCount < townCard.Price)
+        if (Gold < townCard.Price)
         {
             return false;
         }
         _ownTown.Add(townCard);
         _townCardsDeck.Remove(townCard);
-        _goldCount -= townCard.Price;
+        Gold -= townCard.Price;
         return true;
     }
     private string _name = "Default Name";
@@ -60,9 +74,92 @@ public partial class Player
     private List<ITownCard> _ownTown = new List<ITownCard>();
     private int _id = idCount;
     private bool _firstGetMaxBuildings = false;
-    public int GetNumberOfGold()
+    private IViewer? _viewer = null;
+    protected string Name
     {
-        return _goldCount;
+        get
+        {
+            return _name;
+        }
+        set
+        {
+            _name = value;
+            if (OnViewerChangeName != null)
+            {
+                OnViewerChangeName(this, new ViewerChangeNameEventArgs() { newPlayerName = _name });
+            }
+        }
+    }
+    protected int Id
+    {
+        get
+        {
+            return _id;
+        }
+        set
+        {
+            _id = value;
+        }
+    }
+    protected int Gold
+    {
+        get
+        {
+            return _goldCount;
+        }
+        set
+        {
+            _goldCount = value;
+            if (_goldCount < 0) _goldCount = 0;
+            if (OnViewerGoldUpdated != null)
+            {
+                OnViewerGoldUpdated(this, new ViewerGoldUpdatedEventArgs() { currentGoldOfPlayer = _goldCount });
+            }
+        }
+    }
+    protected bool Crown
+    {
+        get
+        {
+            return _hasCrown;
+        }
+        set
+        {
+            _hasCrown = value;
+            if (OnViewerCoronationChange != null)
+            {
+                OnViewerCoronationChange(this, new ViewerCoronationChange() { hasCrown = _hasCrown });
+            }
+        }
+    }
+    private void AttachViewer(IViewer viewer)
+    {
+
+        OnViewerAttach += viewer.OnAttach;
+        OnViewerDetach += viewer.OnDettach;
+        OnViewerChangeName += viewer.OnChangeName;
+        OnViewerGoldUpdated += viewer.OnGoldUpdated;
+        OnViewerCoronationChange += viewer.OnCoronationChange;
+        OnViewerTownCardDeckUpdated += viewer.OnTownCardDeckUpdated;
+        OnViewerBuildedTownUpdatedEventArgs += viewer.OnBuildedTownUpdated;
+        if (OnViewerAttach != null)
+        {
+            OnViewerAttach(this, new ViewerAttachEventArgs() { playerId = Id, playerName = Name });
+        }
+    }
+    private void DetachViewer(IViewer viewer)
+    {
+        if (OnViewerDetach != null)
+        {
+            OnViewerDetach(this, new ViewerDetachEventArgs() { });
+        }
+        OnViewerAttach -= viewer.OnAttach;
+        OnViewerDetach -= viewer.OnDettach;
+        OnViewerChangeName -= viewer.OnChangeName;
+        OnViewerGoldUpdated -= viewer.OnGoldUpdated;
+        OnViewerCoronationChange -= viewer.OnCoronationChange;
+        OnViewerTownCardDeckUpdated -= viewer.OnTownCardDeckUpdated;
+        OnViewerBuildedTownUpdatedEventArgs -= viewer.OnBuildedTownUpdated;
     }
     public int GetNumberOfTownCards()
     {
@@ -78,19 +175,18 @@ public partial class Player
     }
     public void AddGold(int gold)
     {
-        _goldCount += gold;
+        Gold += gold;
     }
     public void RemoveGold(int gold)
     {
-        _goldCount -= gold;
-        if (_goldCount < 0) _goldCount = 0;
+        Gold -= gold;
     }
-    public int getId()
+    public int GetId()
     {
-        return _id;
+        return Id;
     }
-    public void setCrown()
+    public bool HasCrown()
     {
-        _hasCrown = true;
+        return Crown;
     }
 }

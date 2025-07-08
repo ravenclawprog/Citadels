@@ -1,5 +1,6 @@
 using System.Xml.Serialization;
 
+
 namespace Citadel
 {
     using DumpCardRuleType = Dictionary<int, (int open, int close)>;
@@ -25,6 +26,7 @@ namespace Citadel
             _dropPlayerCardsOpen = new List<IPlayerCard>();
             _dropPlayerCardsClose = new List<IPlayerCard>();
             _currentPlayer = null;
+            _viewer = new ConsoleViewer();
             _roundNumber = 0;
         }
         public Game(int numberOfPlayers)
@@ -37,6 +39,7 @@ namespace Citadel
             _dropPlayerCardsClose = new List<IPlayerCard>();
             _currentPlayer = null;
             _roundNumber = 0;
+            _viewer = new ConsoleViewer();
             StartGame(numberOfPlayers);
         }
         List<Player> _players;
@@ -45,6 +48,7 @@ namespace Citadel
         List<ITownCard> _townCardsDeck;
         List<IPlayerCard> _dropPlayerCardsOpen;
         List<IPlayerCard> _dropPlayerCardsClose;
+        IViewer _viewer;
         int _roundNumber;
         public void StartGame(int numberOfPlayers)
         {
@@ -54,9 +58,8 @@ namespace Citadel
             }
             for (int i = 0; i < numberOfPlayers; i++)
             {
-                Player playerToAdd = new(0, false);
+                Player playerToAdd = new(0, false, "DUMMY", null, null, null, _viewer);
                 _players.Add(playerToAdd);
-                // OnPreparation += playerToAdd.OnPreparation;
             }
             _currentPlayer = _players[0];
             _roundNumber = 0;
@@ -74,6 +77,18 @@ namespace Citadel
             ListRandomizer.Permutate<ITownCard>(ref _townCardsDeck);
             ListRandomizer.Permutate<IPlayerCard>(ref _playerCardsDeck);
         }
+        private Player? FindCrownedPlayer()
+        {
+            Player? crownedPlayer = null;
+            foreach (var player in _players)
+            {
+                if (player.HasCrown())
+                {
+                    crownedPlayer = player;
+                }
+            }
+            return crownedPlayer;
+        }
         protected void ChoosingCrown()
         {
             // TODO: strategy pattern
@@ -81,24 +96,28 @@ namespace Citadel
             Player crownedPlayer = _players[0];
             foreach (var player in _players)
             {
-                if (player.getId() > maxId)
+                if (player.GetId() > maxId)
                 {
-                    maxId = player.getId();
+                    maxId = player.GetId();
                     crownedPlayer = player;
                 }
             }
-            crownedPlayer.setCrown();
+            OnCoronation = crownedPlayer.OnCoronation;
+            OnCoronation(this, new CoronationEventArgs());
         }
         protected void Preparation()
         {
             // TODO: pattern strategy
             for (int i = 0; i < _players.Count; i++)
             {
-                PreparationsEventArgs e = new PreparationsEventArgs();
-                e.goldToAdd = prepareStartPlayerGold;
+                SendTownCardsToPlayerEventArgs e = new SendTownCardsToPlayerEventArgs();
                 e.startTownCardDeck.AddRange(_townCardsDeck.Slice(0, prepareStartTownCardCount));
                 _townCardsDeck.RemoveRange(0, prepareStartTownCardCount);
-                _players[0].OnPreparation(this, e);
+                OnSendTownCards = _players[i].OnSendTownCards;
+                OnSendTownCards(this, e);
+
+                OnSendGold = _players[i].OnSendGold;
+                OnSendGold(this, new SendGoldToPlayerEventArgs(){ goldToAdd = prepareStartPlayerGold});
             }
             int numberOfOpened = dumpCardRule[_players.Count].open;
             int numberOfClosed = dumpCardRule[_players.Count].close;

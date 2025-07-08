@@ -11,7 +11,7 @@ namespace Citadel
             foreach (var player in _players)
             {
                 writer.WriteStartElement("player");
-                writer.WriteAttributeString("id", player.getId().ToString());
+                writer.WriteAttributeString("id", player.GetId().ToString());
                 writer.WriteEndElement();
             }
         }
@@ -32,7 +32,7 @@ namespace Citadel
         
         public XmlSchema GetSchema()
         {
-            return null;
+            return new XmlSchema();
         }
     }
 }
