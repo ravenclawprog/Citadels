@@ -2,22 +2,26 @@ namespace Citadel
 {
     public partial class Player
     {
-        public void OnSendGold(object? sender, Game.SendGoldToPlayerEventArgs e)
+        public void OnAddGold(object? sender, Game.PlayerAddGoldEventArgs e)
         {
             AddGold(e.goldToAdd);
         }
-        public void OnSendTownCards(object? sender, Game.SendTownCardsToPlayerEventArgs e)
+        public void OnAddTownCards(object? sender, Game.PlayerAddTownCardsEventArgs e)
         {
-            _townCardsDeck.AddRange(e.startTownCardDeck);
+            AppendTownCards(e.addTownCardDeck);
         }
-        public void OnCoronation(object? sender, Game.CoronationEventArgs e)
+        public void OnCoronation(object? sender, Game.PlayerCoronationEventArgs e)
         {
             Crown = true;
         }
 
-        public void OnDecoronation(object? sender, Game.DecoronationEventArgs e)
+        public void OnDecoronation(object? sender, Game.PlayerDecoronationEventArgs e)
         {
             Crown = false;
+        }
+        public void OnChoosePlayerCard(object? sender, Game.PlayerDecoronationEventArgs e)
+        {
+            
         }
     }
 }

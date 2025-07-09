@@ -6,10 +6,10 @@ namespace Citadel
     using DumpCardRuleType = Dictionary<int, (int open, int close)>;
     public partial class Game : IXmlSerializable
     {
-        private const int maxNumOfBuildingToWin = 7;
-        private const int prepareStartPlayerGold = 2;
-        private const int prepareStartTownCardCount = 4;
-        private readonly DumpCardRuleType dumpCardRule = new()
+        public const int maxNumOfBuildingToWin = 7;
+        public const int prepareStartPlayerGold = 2;
+        public const int prepareStartTownCardCount = 4;
+        public readonly DumpCardRuleType dumpCardRule = new()
         {
             {4, new (2,1) },
             {5, new (1,1) },
@@ -25,7 +25,6 @@ namespace Citadel
             _townCardsDeck = gp.GenerateTownCardDeck();
             _dropPlayerCardsOpen = new List<IPlayerCard>();
             _dropPlayerCardsClose = new List<IPlayerCard>();
-            _currentPlayer = null;
             _viewer = new ConsoleViewer();
             _roundNumber = 0;
         }
@@ -37,13 +36,11 @@ namespace Citadel
             _townCardsDeck = gp.GenerateTownCardDeck();
             _dropPlayerCardsOpen = new List<IPlayerCard>();
             _dropPlayerCardsClose = new List<IPlayerCard>();
-            _currentPlayer = null;
             _roundNumber = 0;
             _viewer = new ConsoleViewer();
             StartGame(numberOfPlayers);
         }
         List<Player> _players;
-        Player? _currentPlayer;
         List<IPlayerCard> _playerCardsDeck;
         List<ITownCard> _townCardsDeck;
         List<IPlayerCard> _dropPlayerCardsOpen;
@@ -61,7 +58,6 @@ namespace Citadel
                 Player playerToAdd = new(0, false, "DUMMY", null, null, null, _viewer);
                 _players.Add(playerToAdd);
             }
-            _currentPlayer = _players[0];
             _roundNumber = 0;
             RandomizeDecks();
             ChoosingCrown();
@@ -103,21 +99,21 @@ namespace Citadel
                 }
             }
             OnCoronation = crownedPlayer.OnCoronation;
-            OnCoronation(this, new CoronationEventArgs());
+            OnCoronation(this, new PlayerCoronationEventArgs());
         }
         protected void Preparation()
         {
             // TODO: pattern strategy
             for (int i = 0; i < _players.Count; i++)
             {
-                SendTownCardsToPlayerEventArgs e = new SendTownCardsToPlayerEventArgs();
-                e.startTownCardDeck.AddRange(_townCardsDeck.Slice(0, prepareStartTownCardCount));
+                PlayerAddTownCardsEventArgs e = new PlayerAddTownCardsEventArgs();
+                e.addTownCardDeck.AddRange(_townCardsDeck.Slice(0, prepareStartTownCardCount));
                 _townCardsDeck.RemoveRange(0, prepareStartTownCardCount);
-                OnSendTownCards = _players[i].OnSendTownCards;
-                OnSendTownCards(this, e);
+                OnAddTownCards = _players[i].OnAddTownCards;
+                OnAddTownCards(this, e);
 
-                OnSendGold = _players[i].OnSendGold;
-                OnSendGold(this, new SendGoldToPlayerEventArgs(){ goldToAdd = prepareStartPlayerGold});
+                OnAddGold = _players[i].OnAddGold;
+                OnAddGold(this, new PlayerAddGoldEventArgs(){ goldToAdd = prepareStartPlayerGold});
             }
             int numberOfOpened = dumpCardRule[_players.Count].open;
             int numberOfClosed = dumpCardRule[_players.Count].close;

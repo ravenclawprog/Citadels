@@ -12,7 +12,6 @@ public partial class Player
         Gold = gold;
         Crown = crown;
         _viewer = viewer;
-        _firstGetMaxBuildings = false;
         if (name != null)
         {
             _name = name;
@@ -73,7 +72,6 @@ public partial class Player
     private List<ITownCard> _townCardsDeck = new List<ITownCard>();
     private List<ITownCard> _ownTown = new List<ITownCard>();
     private int _id = idCount;
-    private bool _firstGetMaxBuildings = false;
     private IViewer? _viewer = null;
     protected string Name
     {
@@ -132,6 +130,13 @@ public partial class Player
             }
         }
     }
+    protected bool BuildMaxBuildings
+    {
+        get
+        {
+            return _ownTown.Count >= Game.maxNumOfBuildingToWin;
+        }
+    }
     private void AttachViewer(IViewer viewer)
     {
 
@@ -165,19 +170,19 @@ public partial class Player
     {
         return _townCardsDeck.Count;
     }
-    public void AppendTownCard(ITownCard townCard)
+    protected void AppendTownCards(List<ITownCard> townCards)
     {
-        _townCardsDeck.Add(townCard);
+        _townCardsDeck.AddRange(townCards);
     }
-    public List<ITownCard> GetOwnCity()
+    protected List<ITownCard> GetOwnCity()
     {
         return _ownTown.Select(s => (ITownCard)s.Clone()).ToList();
     }
-    public void AddGold(int gold)
+    protected void AddGold(int gold)
     {
         Gold += gold;
     }
-    public void RemoveGold(int gold)
+    protected void RemoveGold(int gold)
     {
         Gold -= gold;
     }

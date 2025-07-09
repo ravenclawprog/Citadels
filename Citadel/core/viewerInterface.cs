@@ -9,5 +9,6 @@ namespace Citadel
         public void OnCoronationChange(object? sender, Player.ViewerCoronationChange e);
         public void OnTownCardDeckUpdated(object? sender, Player.ViewerTownCardDeckUpdatedEventArgs e);
         public void OnBuildedTownUpdated(object? sender, Player.ViewerBuildedTownUpdatedEventArgs e);
+        public void OnPlayerCardToChoose(object? sender, Player.ViewerPlayerCardsToChooseEventArgs e);
     }
 }

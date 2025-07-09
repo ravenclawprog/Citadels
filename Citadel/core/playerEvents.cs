@@ -13,12 +13,12 @@ namespace Citadel
             public string newPlayerName = "";
         }
         protected EventHandler<ViewerChangeNameEventArgs>? OnViewerChangeName;
-        
+
         public class ViewerDetachEventArgs : EventArgs
         {
         }
         protected EventHandler<ViewerDetachEventArgs>? OnViewerDetach;
-        
+
         public class ViewerGoldUpdatedEventArgs : EventArgs
         {
             public int currentGoldOfPlayer = 0;
@@ -39,5 +39,17 @@ namespace Citadel
             public bool hasCrown = false;
         }
         protected EventHandler<ViewerCoronationChange>? OnViewerCoronationChange;
+        public class GameChoosedPlayerCardEventArgs : EventArgs
+        {
+            public IPlayerCard? choosedPlayerCard = null;
+        }
+        protected EventHandler<GameChoosedPlayerCardEventArgs>? OnGameChoosedPlayerCard;
+        public class ViewerPlayerCardsToChooseEventArgs : EventArgs
+        {
+            public List<IPlayerCard> playerCardToChoose = new List<IPlayerCard>();
+            public List<IPlayerCard> playerCardExcludedOpen = new List<IPlayerCard>();
+            public int numberOfPlayerCardExcludedClose = 0;
+        }
+        protected EventHandler<ViewerPlayerCardsToChooseEventArgs>? OnViewerPlayerCardsToChoose;
     }
 }

@@ -3,30 +3,31 @@ namespace Citadel
 {
     public partial class Game
     {
-        public class PreparationsEventArgs : EventArgs
-        {
-            public int goldToAdd = 0;
-            public List<ITownCard> startTownCardDeck = new List<ITownCard>();
-        }
-        // protected EventHandler<PreparationsEventArgs> OnPreparation;
-        public class SendGoldToPlayerEventArgs : EventArgs
+        public class PlayerAddGoldEventArgs : EventArgs
         {
             public int goldToAdd = 0;
         }
-        protected EventHandler<SendGoldToPlayerEventArgs> OnSendGold;
-        public class SendTownCardsToPlayerEventArgs : EventArgs
+        protected EventHandler<PlayerAddGoldEventArgs> OnAddGold;
+        public class PlayerAddTownCardsEventArgs : EventArgs
         {
-            public List<ITownCard> startTownCardDeck = new List<ITownCard>();
+            public List<ITownCard> addTownCardDeck = new List<ITownCard>();
         }
-        protected EventHandler<SendTownCardsToPlayerEventArgs> OnSendTownCards;
+        protected EventHandler<PlayerAddTownCardsEventArgs> OnAddTownCards;
 
-        public class CoronationEventArgs : EventArgs
+        public class PlayerCoronationEventArgs : EventArgs
         {
         }
-        protected EventHandler<CoronationEventArgs> OnCoronation;
-        public class DecoronationEventArgs : EventArgs
+        protected EventHandler<PlayerCoronationEventArgs> OnCoronation;
+        public class PlayerDecoronationEventArgs : EventArgs
         {
         }
-        protected EventHandler<DecoronationEventArgs> OnDecoronation;
+        protected EventHandler<PlayerDecoronationEventArgs> OnDecoronation;
+        public class PlayerChoosePlayerCardEventArgs : EventArgs
+        {
+            List<IPlayerCard> playerCardToChoose = new List<IPlayerCard>();
+            List<IPlayerCard> playerCardExcludedOpen = new List<IPlayerCard>();
+            int numberOfPlayerCardExcludedClose = 0;
+        }
+        protected EventHandler<PlayerChoosePlayerCardEventArgs> OnChoosePlayerCard;
     }
 }

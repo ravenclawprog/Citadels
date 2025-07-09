@@ -40,5 +40,21 @@ namespace Citadel
             Player? player = (Player?)sender;
             Console.WriteLine("Builded town updated for player with id:{0}", player?.GetId());
         }
+        public void OnPlayerCardToChoose(object? sender, Player.ViewerPlayerCardsToChooseEventArgs e)
+        {
+            Player? player = (Player?)sender;
+            Console.WriteLine("Player card to choose for player with id:{0}", player?.GetId());
+            Console.WriteLine("Number of excluded open cards:{0}", e.playerCardExcludedOpen.Count);
+            for (int i = 0; i < e.playerCardExcludedOpen.Count; i++)
+            {
+                Console.WriteLine("\t{0}:{1}", i, e.playerCardExcludedOpen[i].Name);
+            }
+            Console.WriteLine("Number of excluded closed cards:{0}", e.numberOfPlayerCardExcludedClose);
+            Console.WriteLine("Number of player cards to choose:{0}", e.playerCardToChoose.Count);
+            for (int i = 0; i < e.playerCardToChoose.Count; i++)
+            {
+                Console.WriteLine("\t{0}:{1}", i, e.playerCardToChoose[i].Name);
+            }
+        }
     }
 }
