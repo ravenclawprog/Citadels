@@ -49,21 +49,21 @@ public partial class Player
         }
 
     }
-    bool Build(int index)
+    internal void Build(int index)
     {
-        if (index >= _townCardsDeck.Count)
-        {
-            return false;
-        }
+        ValidateBuilding(index);
         ITownCard townCard = _townCardsDeck[index];
-        if (Gold < townCard.Price)
-        {
-            return false;
-        }
         _ownTown.Add(townCard);
-        _townCardsDeck.Remove(townCard);
+        _townCardsDeck.RemoveAt(index);
         Gold -= townCard.Price;
-        return true;
+        OnViewerTownCardDeckUpdated?.Invoke(this, new ViewerTownCardDeckUpdatedEventArgs
+        {
+            townCardDeck = HandSnapshot.ToList()
+        });
+        OnViewerBuildedTownUpdatedEventArgs?.Invoke(this, new ViewerBuildedTownUpdatedEventArgs
+        {
+            buildedTown = GetOwnCity()
+        });
     }
     private string _name = "Default Name";
     private bool _hasCrown = false;

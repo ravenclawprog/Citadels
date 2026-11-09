@@ -2,11 +2,13 @@ namespace Citadel;
 
 public partial class Player
 {
+    internal string? CharacterName => _playerCard?.Name;
+
     internal int CharacterRank => _playerCard == null
         ? throw new InvalidOperationException("The player has not chosen a character.")
         : new BaseGamePrerequisite().Sequence(_playerCard);
 
-    internal void AssignCharacter(IPlayerCard card) => _playerCard = card;
+    internal void AssignCharacter(IPlayerCard? card) => _playerCard = card;
 
     // A UI may submit a choice after receiving OnPlayerCardToChoose.
     public void ChoosePlayerCard(IPlayerCard card)

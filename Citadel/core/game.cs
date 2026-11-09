@@ -57,6 +57,7 @@ namespace Citadel
             // Starting a new game must discard the previous game's state.
             foreach (var oldPlayer in _players)
                 oldPlayer.OnGameChoosedPlayerCard -= OnChoosedPlayerCard;
+            ResetTurnState();
             _selectionOrder.Clear();
             _selectionIndex = 0;
             _charactersSelected = false;
@@ -82,6 +83,7 @@ namespace Citadel
             ChoosingCrown();
             Preparation();
             _roundNumber = 0;
+            Phase = GamePhase.ReadyForCharacterSelection;
         }
         public void EndGame()
         {

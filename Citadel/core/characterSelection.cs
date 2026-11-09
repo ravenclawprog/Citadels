@@ -17,9 +17,12 @@ public partial class Game
             throw new InvalidOperationException("Start a game before choosing characters.");
         if (_players.Count > 7)
             throw new NotSupportedException("Eight players require a ninth character, which is not implemented yet.");
-        if (_selectionOrder.Count != 0)
+        if (Phase != GamePhase.ReadyForCharacterSelection)
             throw new InvalidOperationException("Character selection has already started for this round.");
 
+        _selectionOrder.Clear();
+        foreach (var player in _players)
+            player.AssignCharacter(null);
         PrepareCharacterDeck();
         var crownedPlayer = FindCrownedPlayer()
             ?? throw new InvalidOperationException("The game has no crowned player.");
@@ -29,6 +32,7 @@ public partial class Game
         _selectionIndex = 0;
         _charactersSelected = false;
         _roundNumber++;
+        Phase = GamePhase.CharacterSelection;
         NotifyCharacterChoice();
     }
 
@@ -53,6 +57,7 @@ public partial class Game
             _dropPlayerCardsClose.AddRange(_playerCardsDeck);
             _playerCardsDeck.Clear();
             _charactersSelected = true;
+            StartTurns();
             return;
         }
 
@@ -76,7 +81,7 @@ public partial class Game
 
     private Player RequireChoosingPlayer(int playerId)
     {
-        if (CurrentChoosingPlayerId != playerId)
+        if (Phase != GamePhase.CharacterSelection || CurrentChoosingPlayerId != playerId)
             throw new InvalidOperationException("It is not this player's turn to choose a character.");
         return _selectionOrder[_selectionIndex];
     }
