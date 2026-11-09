@@ -24,9 +24,9 @@ namespace Citadel
         protected EventHandler<PlayerDecoronationEventArgs>? OnDecoronation;
         public class PlayerChoosePlayerCardEventArgs : EventArgs
         {
-            List<IPlayerCard> playerCardToChoose = new List<IPlayerCard>();
-            List<IPlayerCard> playerCardExcludedOpen = new List<IPlayerCard>();
-            int numberOfPlayerCardExcludedClose = 0;
+            public List<IPlayerCard> playerCardToChoose = new List<IPlayerCard>();
+            public List<IPlayerCard> playerCardExcludedOpen = new List<IPlayerCard>();
+            public int numberOfPlayerCardExcludedClose = 0;
         }
         protected EventHandler<PlayerChoosePlayerCardEventArgs>? OnChoosePlayerCard;
     }

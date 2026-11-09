@@ -4,15 +4,12 @@ namespace Citadel
     {
         public void OnChoosedPlayerCard(object? sender, Player.GameChoosedPlayerCardEventArgs e)
         {
-            if (e.choosedPlayerCard != null)
-            {
-                _playerCardsDeck.Remove(e.choosedPlayerCard);
-            }
-            else
-            {
+            ArgumentNullException.ThrowIfNull(e);
+            if (e.choosedPlayerCard == null)
                 throw new UnchoosedPlayerCard("player didn't choosed a player card.");
-            }
-            
+            if (sender is not Player player || !_players.Contains(player))
+                throw new InvalidOperationException("The player does not belong to this game.");
+            ChooseCharacter(player.GetId(), new BaseGamePrerequisite().Sequence(e.choosedPlayerCard));
         }
     }
 }

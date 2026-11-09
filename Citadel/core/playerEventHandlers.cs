@@ -19,9 +19,14 @@ namespace Citadel
         {
             Crown = false;
         }
-        public void OnChoosePlayerCard(object? sender, Game.PlayerDecoronationEventArgs e)
+        public void OnChoosePlayerCard(object? sender, Game.PlayerChoosePlayerCardEventArgs e)
         {
-            
+            OnViewerPlayerCardsToChoose?.Invoke(this, new ViewerPlayerCardsToChooseEventArgs
+            {
+                playerCardToChoose = e.playerCardToChoose,
+                playerCardExcludedOpen = e.playerCardExcludedOpen,
+                numberOfPlayerCardExcludedClose = e.numberOfPlayerCardExcludedClose
+            });
         }
     }
 }

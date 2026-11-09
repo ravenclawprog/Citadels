@@ -29,7 +29,7 @@ namespace Citadel
             _viewer = new ConsoleViewer();
             _roundNumber = 0;
         }
-        public Game(int numberOfPlayers)
+        public Game(int numberOfPlayers, IViewer? viewer = null)
         {
             _players = new List<Player>();
             GamePrerequisite gp = new BaseGamePrerequisite();
@@ -38,7 +38,7 @@ namespace Citadel
             _dropPlayerCardsOpen = new List<IPlayerCard>();
             _dropPlayerCardsClose = new List<IPlayerCard>();
             _roundNumber = 0;
-            _viewer = new ConsoleViewer();
+            _viewer = viewer ?? new ConsoleViewer();
             StartGame(numberOfPlayers);
         }
         List<Player> _players;
@@ -55,6 +55,11 @@ namespace Citadel
                 throw new IncorrectNumberOfPlayers("Number of players must be more or equal 4 and less or equal 8");
             }
             // Starting a new game must discard the previous game's state.
+            foreach (var oldPlayer in _players)
+                oldPlayer.OnGameChoosedPlayerCard -= OnChoosedPlayerCard;
+            _selectionOrder.Clear();
+            _selectionIndex = 0;
+            _charactersSelected = false;
             _players.Clear();
             GamePrerequisite prerequisite = new BaseGamePrerequisite();
             _playerCardsDeck = prerequisite.GeneratePlayerCardDeck();
@@ -69,6 +74,7 @@ namespace Citadel
             for (int i = 0; i < numberOfPlayers; i++)
             {
                 Player playerToAdd = new(0, false, "DUMMY", null, null, null, _viewer);
+                playerToAdd.OnGameChoosedPlayerCard += OnChoosedPlayerCard;
                 _players.Add(playerToAdd);
             }
             _roundNumber = 0;
@@ -129,28 +135,6 @@ namespace Citadel
 
                 OnAddGold = _players[i].OnAddGold;
                 OnAddGold(this, new PlayerAddGoldEventArgs() { goldToAdd = prepareStartPlayerGold });
-            }
-            int numberOfOpened = dumpCardRule[_players.Count].open;
-            int numberOfClosed = dumpCardRule[_players.Count].close;
-            // dropping player card open
-            for (int i = 0; i < numberOfOpened; i++)
-            {
-                if (_playerCardsDeck[0].Name == "King") // if dropping King, than drop
-                {
-                    _dropPlayerCardsOpen.Add(_playerCardsDeck[1]);
-                    _playerCardsDeck.Remove(_playerCardsDeck[1]);
-                }
-                else
-                {
-                    _dropPlayerCardsOpen.Add(_playerCardsDeck[0]);
-                    _playerCardsDeck.Remove(_playerCardsDeck[0]);
-                }
-            }
-            // dropping player card closed
-            for (int i = 0; i < numberOfClosed; i++)
-            {
-                _dropPlayerCardsClose.Add(_playerCardsDeck[0]);
-                _playerCardsDeck.Remove(_playerCardsDeck[0]);
             }
         }
 

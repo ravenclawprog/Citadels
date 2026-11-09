@@ -43,7 +43,7 @@ namespace Citadel
         {
             public IPlayerCard? choosedPlayerCard = null;
         }
-        protected EventHandler<GameChoosedPlayerCardEventArgs>? OnGameChoosedPlayerCard;
+        public event EventHandler<GameChoosedPlayerCardEventArgs>? OnGameChoosedPlayerCard;
         public class ViewerPlayerCardsToChooseEventArgs : EventArgs
         {
             public List<IPlayerCard> playerCardToChoose = new List<IPlayerCard>();

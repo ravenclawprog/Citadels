@@ -140,6 +140,7 @@ public partial class Player
     private void AttachViewer(IViewer viewer)
     {
 
+        OnViewerPlayerCardsToChoose += viewer.OnPlayerCardToChoose;
         OnViewerAttach += viewer.OnAttach;
         OnViewerDetach += viewer.OnDettach;
         OnViewerChangeName += viewer.OnChangeName;
@@ -158,6 +159,7 @@ public partial class Player
         {
             OnViewerDetach(this, new ViewerDetachEventArgs() { });
         }
+        OnViewerPlayerCardsToChoose -= viewer.OnPlayerCardToChoose;
         OnViewerAttach -= viewer.OnAttach;
         OnViewerDetach -= viewer.OnDettach;
         OnViewerChangeName -= viewer.OnChangeName;
