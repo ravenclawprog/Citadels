@@ -61,7 +61,8 @@ namespace Citadel
         ];
             return ret;
         }
-        public override int Sequence(IPlayerCard playerCard) {
+        public override int Sequence(IPlayerCard playerCard)
+        {
             if (playerCard is AssassinPlayerCard)
             {
                 return 1;
@@ -97,5 +98,5 @@ namespace Citadel
             throw new WrongPlayerCard("Unknown type of Player card:" + playerCard.GetType().ToString());
         }
     }
-    
+
 }

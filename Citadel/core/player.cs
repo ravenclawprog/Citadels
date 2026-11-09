@@ -173,6 +173,10 @@ public partial class Player
     protected void AppendTownCards(List<ITownCard> townCards)
     {
         _townCardsDeck.AddRange(townCards);
+        OnViewerTownCardDeckUpdated?.Invoke(this, new ViewerTownCardDeckUpdatedEventArgs
+        {
+            townCardDeck = _townCardsDeck.Select(card => (ITownCard)card.Clone()).ToList()
+        });
     }
     protected List<ITownCard> GetOwnCity()
     {

@@ -8,7 +8,7 @@ namespace Citadel
         public int Price { get { return _price; } }
 
         public String Name { get { return _name; } }
-        public string Description { get { return "I can rule!"; } }
+        public string Description { get { return _description; } }
         public void Action()
         {
             Console.WriteLine("Name:{0}\nDescription:{1}\nQuearter type:{2}", _name, _description, _quarterType.ToString());

@@ -3,6 +3,7 @@ using System.Xml.Serialization;
 
 namespace Citadel
 {
+    // key - number of players, value - number of dropped cards at open and at close
     using DumpCardRuleType = Dictionary<int, (int open, int close)>;
     public partial class Game : IXmlSerializable
     {
@@ -53,6 +54,18 @@ namespace Citadel
             {
                 throw new IncorrectNumberOfPlayers("Number of players must be more or equal 4 and less or equal 8");
             }
+            // Starting a new game must discard the previous game's state.
+            _players.Clear();
+            GamePrerequisite prerequisite = new BaseGamePrerequisite();
+            _playerCardsDeck = prerequisite.GeneratePlayerCardDeck();
+            _townCardsDeck = prerequisite.GenerateTownCardDeck();
+            _dropPlayerCardsOpen.Clear();
+            _dropPlayerCardsClose.Clear();
+            OnAddGold = null;
+            OnAddTownCards = null;
+            OnCoronation = null;
+            OnDecoronation = null;
+            OnChoosePlayerCard = null;
             for (int i = 0; i < numberOfPlayers; i++)
             {
                 Player playerToAdd = new(0, false, "DUMMY", null, null, null, _viewer);
@@ -81,6 +94,7 @@ namespace Citadel
                 if (player.HasCrown())
                 {
                     crownedPlayer = player;
+                    break;
                 }
             }
             return crownedPlayer;
@@ -104,6 +118,7 @@ namespace Citadel
         protected void Preparation()
         {
             // TODO: pattern strategy
+            // Adding start cards to all players and gold
             for (int i = 0; i < _players.Count; i++)
             {
                 PlayerAddTownCardsEventArgs e = new PlayerAddTownCardsEventArgs();
@@ -113,14 +128,14 @@ namespace Citadel
                 OnAddTownCards(this, e);
 
                 OnAddGold = _players[i].OnAddGold;
-                OnAddGold(this, new PlayerAddGoldEventArgs(){ goldToAdd = prepareStartPlayerGold});
+                OnAddGold(this, new PlayerAddGoldEventArgs() { goldToAdd = prepareStartPlayerGold });
             }
             int numberOfOpened = dumpCardRule[_players.Count].open;
             int numberOfClosed = dumpCardRule[_players.Count].close;
-
+            // dropping player card open
             for (int i = 0; i < numberOfOpened; i++)
             {
-                if (_playerCardsDeck[0].FavoriteQuarterType == QuarterType.Royal)
+                if (_playerCardsDeck[0].Name == "King") // if dropping King, than drop
                 {
                     _dropPlayerCardsOpen.Add(_playerCardsDeck[1]);
                     _playerCardsDeck.Remove(_playerCardsDeck[1]);
@@ -131,6 +146,7 @@ namespace Citadel
                     _playerCardsDeck.Remove(_playerCardsDeck[0]);
                 }
             }
+            // dropping player card closed
             for (int i = 0; i < numberOfClosed; i++)
             {
                 _dropPlayerCardsClose.Add(_playerCardsDeck[0]);
