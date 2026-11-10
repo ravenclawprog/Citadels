@@ -21,24 +21,15 @@ namespace Citadel
         public Game()
         {
             _players = new List<Player>();
-            GamePrerequisite gp = new BaseGamePrerequisite();
-            _playerCardsDeck = gp.GeneratePlayerCardDeck();
-            _townCardsDeck = gp.GenerateTownCardDeck();
+            _playerCardsDeck = new List<IPlayerCard>();
+            _townCardsDeck = new List<ITownCard>();
             _dropPlayerCardsOpen = new List<IPlayerCard>();
             _dropPlayerCardsClose = new List<IPlayerCard>();
             _viewer = new ConsoleViewer();
-            _roundNumber = 0;
         }
-        public Game(int numberOfPlayers, IViewer? viewer = null)
+        public Game(int numberOfPlayers, IViewer? viewer = null) : this()
         {
-            _players = new List<Player>();
-            GamePrerequisite gp = new BaseGamePrerequisite();
-            _playerCardsDeck = gp.GeneratePlayerCardDeck();
-            _townCardsDeck = gp.GenerateTownCardDeck();
-            _dropPlayerCardsOpen = new List<IPlayerCard>();
-            _dropPlayerCardsClose = new List<IPlayerCard>();
-            _roundNumber = 0;
-            _viewer = viewer ?? new ConsoleViewer();
+            _viewer = viewer ?? _viewer;
             StartGame(numberOfPlayers);
         }
         List<Player> _players;
@@ -47,35 +38,27 @@ namespace Citadel
         List<IPlayerCard> _dropPlayerCardsOpen;
         List<IPlayerCard> _dropPlayerCardsClose;
         IViewer _viewer;
+        readonly List<IPlayerCard> _characterCards = new();
+        readonly Dictionary<Type, int> _characterRanks = new();
         int _roundNumber;
+        public Player GetPlayer(int playerId) => FindPlayer(playerId);
+
         public void StartGame(int numberOfPlayers)
         {
             if (numberOfPlayers < 4 || numberOfPlayers > 8)
             {
                 throw new IncorrectNumberOfPlayers("Number of players must be more or equal 4 and less or equal 8");
             }
-            // Starting a new game must discard the previous game's state.
-            foreach (var oldPlayer in _players)
-                oldPlayer.OnGameChoosedPlayerCard -= OnChoosedPlayerCard;
-            ResetTurnState();
-            _selectionOrder.Clear();
-            _selectionIndex = 0;
-            _charactersSelected = false;
-            _players.Clear();
             GamePrerequisite prerequisite = new BaseGamePrerequisite();
-            _playerCardsDeck = prerequisite.GeneratePlayerCardDeck();
+            _characterCards.AddRange(prerequisite.GeneratePlayerCardDeck());
+            foreach (var card in _characterCards)
+                _characterRanks.Add(card.GetType(), prerequisite.Sequence(card));
+            _playerCardsDeck = _characterCards.Select(card => (IPlayerCard)card.Clone()).ToList();
             _townCardsDeck = prerequisite.GenerateTownCardDeck();
-            _dropPlayerCardsOpen.Clear();
-            _dropPlayerCardsClose.Clear();
-            OnAddGold = null;
-            OnAddTownCards = null;
-            OnCoronation = null;
-            OnDecoronation = null;
-            OnChoosePlayerCard = null;
             for (int i = 0; i < numberOfPlayers; i++)
             {
                 Player playerToAdd = new(0, false, "DUMMY", null, null, null, _viewer);
-                playerToAdd.OnGameChoosedPlayerCard += OnChoosedPlayerCard;
+                playerToAdd.OnGameAction += OnPlayerAction;
                 _players.Add(playerToAdd);
             }
             _roundNumber = 0;

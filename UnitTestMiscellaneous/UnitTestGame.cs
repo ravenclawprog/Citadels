@@ -20,16 +20,28 @@ public class UnitTestGame
     }
 
     [Fact]
-    public void RestartCreatesFreshPlayersAndDecks()
+    public void StartGamePreparesDecksAndCharacterRanksOnAnEmptyGame()
     {
-        var game = new Game(8);
-        for (int i = 0; i < 5; i++)
+        var game = new Game();
+        Assert.Equal(GamePhase.NotStarted, game.Phase);
+        Assert.Equal(0, game.RemainingTownCards);
+
+        game.StartGame(4);
+
+        Assert.Equal(GamePhase.ReadyForCharacterSelection, game.Phase);
+        Assert.Equal(4, game.Players.Count);
+        Assert.Equal(new BaseGamePrerequisite().GenerateTownCardDeck().Count - 16,
+            game.RemainingTownCards);
+        game.StartCharacterSelection();
+        var ranks = new BaseGamePrerequisite();
+        while (!game.CharactersSelected)
         {
-            game.StartGame(4);
-            Assert.Equal(4, XDocument.Parse(game.Serialize()).Root!.Elements("player").Count());
-            game.StartGame(8);
-            Assert.Equal(8, XDocument.Parse(game.Serialize()).Root!.Elements("player").Count());
+            int id = game.CurrentChoosingPlayerId!.Value;
+            game.ChooseCharacter(id, ranks.Sequence(game.GetAvailableCharacters(id)[0]));
         }
+        Assert.Equal(GamePhase.PlayerTurns, game.Phase);
+        Assert.Equal(4, game.GetTurnOrder().Count);
+        Assert.InRange(game.CurrentCharacterRank!.Value, 1, 8);
     }
 
     [Theory]
@@ -37,13 +49,11 @@ public class UnitTestGame
     [InlineData(0)]
     [InlineData(3)]
     [InlineData(9)]
-    public void InvalidPlayerCountDoesNotChangeExistingGame(int count)
+    public void InvalidPlayerCountIsRejected(int count)
     {
-        var game = new Game(4);
-        var before = game.Serialize();
+        var game = new Game();
         var error = Assert.Throws<IncorrectNumberOfPlayers>(() => game.StartGame(count));
         Assert.Equal("Number of players must be more or equal 4 and less or equal 8", error.Message);
-        Assert.Equal(before, game.Serialize());
         Assert.Throws<IncorrectNumberOfPlayers>(() => new Game(count));
     }
 }

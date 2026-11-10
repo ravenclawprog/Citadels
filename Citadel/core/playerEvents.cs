@@ -1,5 +1,13 @@
 namespace Citadel
 {
+    public enum PlayerTurnStage
+    {
+        Inactive,
+        TakeResources,
+        KeepTownCard,
+        TurnActions
+    }
+
     public partial class Player
     {
         public class ViewerAttachEventArgs : EventArgs
@@ -39,17 +47,42 @@ namespace Citadel
             public bool hasCrown = false;
         }
         protected EventHandler<ViewerCoronationChange>? OnViewerCoronationChange;
-        public class GameChoosedPlayerCardEventArgs : EventArgs
-        {
-            public IPlayerCard? choosedPlayerCard = null;
-        }
-        public event EventHandler<GameChoosedPlayerCardEventArgs>? OnGameChoosedPlayerCard;
         public class ViewerPlayerCardsToChooseEventArgs : EventArgs
         {
+            public int roundNumber;
+            public IReadOnlyList<CharacterChoice> characters = Array.Empty<CharacterChoice>();
             public List<IPlayerCard> playerCardToChoose = new List<IPlayerCard>();
             public List<IPlayerCard> playerCardExcludedOpen = new List<IPlayerCard>();
             public int numberOfPlayerCardExcludedClose = 0;
         }
         protected EventHandler<ViewerPlayerCardsToChooseEventArgs>? OnViewerPlayerCardsToChoose;
+
+        public sealed class ViewerCharacterChangedEventArgs(IPlayerCard? character, int? rank) : EventArgs
+        {
+            public IPlayerCard? Character { get; } = character;
+            public int? Rank { get; } = rank;
+        }
+        protected event EventHandler<ViewerCharacterChangedEventArgs>? OnViewerCharacterChanged;
+
+        public sealed class GameActionEventArgs(int playerId, PlayerAction action) : EventArgs
+        {
+            public int PlayerId { get; } = playerId;
+            public PlayerAction Action { get; } = action ?? throw new ArgumentNullException(nameof(action));
+        }
+
+        public event EventHandler<GameActionEventArgs>? OnGameAction;
+
+        public sealed class ViewerTurnStateChangedEventArgs(int roundNumber, PlayerTurnStage stage,
+            string characterName, int characterRank, bool canBuild,
+            IReadOnlyList<ITownCard> drawnCards) : EventArgs
+        {
+            public int RoundNumber { get; } = roundNumber;
+            public PlayerTurnStage Stage { get; } = stage;
+            public string CharacterName { get; } = characterName;
+            public int CharacterRank { get; } = characterRank;
+            public bool CanBuild { get; } = canBuild;
+            public IReadOnlyList<ITownCard> DrawnCards { get; } = drawnCards;
+        }
+        protected event EventHandler<ViewerTurnStateChangedEventArgs>? OnViewerTurnStateChanged;
     }
 }

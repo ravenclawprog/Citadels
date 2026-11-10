@@ -72,21 +72,6 @@ public class UnitTestCharacterSelection
     }
 
     [Fact]
-    public void RestartResetsSelectionState()
-    {
-        var game = new Game(4);
-        game.StartCharacterSelection();
-        int oldId = game.CurrentChoosingPlayerId!.Value;
-        game.StartGame(5);
-        Assert.False(game.CharactersSelected);
-        Assert.Null(game.CurrentChoosingPlayerId);
-        Assert.Equal(0, game.RoundNumber);
-        game.StartCharacterSelection();
-        Assert.Equal(6, game.GetAvailableCharacters(game.CurrentChoosingPlayerId!.Value).Count);
-        Assert.Throws<InvalidOperationException>(() => game.GetAvailableCharacters(oldId));
-    }
-
-    [Fact]
     public void UnsupportedSetupFailsBeforeStartingSelection()
     {
         var empty = new Game();
@@ -119,39 +104,72 @@ public class UnitTestCharacterSelection
     }
 
     [Fact]
-    public void ViewerCanSubmitChoicesThroughPlayerEvents()
+    public void ViewerOnlyObservesChoicesAndControllerMakesDecisions()
     {
         var viewer = new Mock<IViewer>();
         var chosen = new Dictionary<int, int>();
         viewer.Setup(v => v.OnPlayerCardToChoose(It.IsAny<object>(),
                 It.IsAny<Player.ViewerPlayerCardsToChooseEventArgs>()))
-            .Callback<object, Player.ViewerPlayerCardsToChooseEventArgs>((sender, e) =>
+            .Callback<object, Player.ViewerPlayerCardsToChooseEventArgs>((_, e) =>
             {
-                var player = Assert.IsType<Player>(sender);
                 Assert.DoesNotContain(e.playerCardExcludedOpen, card => card is KingPlayerCard);
-                var card = e.playerCardToChoose[0];
-                chosen.Add(player.GetId(), new BaseGamePrerequisite().Sequence(card));
-                // Options are detached snapshots; changes cannot alter the game deck.
                 e.playerCardToChoose.Clear();
-                player.ChoosePlayerCard(card);
             });
+        var controller = new Mock<IController>(MockBehavior.Strict);
+        controller.Setup(c => c.ChooseCharacter(It.IsAny<Game.PlayerChooseCharacterEventArgs>()))
+            .Returns<Game.PlayerChooseCharacterEventArgs>(e =>
+            {
+                int rank = e.Characters[0].Rank;
+                chosen.Add(e.PlayerId, rank);
+                return new PlayerAction(PlayerActionKind.ChooseCharacter, rank);
+            });
+        controller.Setup(c => c.TakeResources(It.IsAny<Game.PlayerTakeResourcesEventArgs>()))
+            .Returns(new PlayerAction(PlayerActionKind.Quit));
         var game = new Game(4, viewer.Object);
+        foreach (var player in game.Players) player.SetController(controller.Object);
         game.StartCharacterSelection();
+        Assert.False(game.CharactersSelected);
+        Assert.Empty(chosen);
+
+        game.Run();
 
         Assert.True(game.CharactersSelected);
         Assert.Equal(4, chosen.Count);
         Assert.Equal(chosen.OrderBy(pair => pair.Value).Select(pair => pair.Key), game.GetTurnOrder());
-        Assert.Throws<InvalidOperationException>(() => game.StartCharacterSelection());
+        controller.Verify(c => c.ChooseCharacter(It.IsAny<Game.PlayerChooseCharacterEventArgs>()), Times.Exactly(4));
     }
 
     [Fact]
-    public void EventRejectsPlayerOutsideGameAndMissingCard()
+    public void CharacterAssignmentAndNextRoundResetNotifyEachPlayersViewer()
     {
-        var game = new Game(4);
+        var updates = new List<(Player Player, Player.ViewerCharacterChangedEventArgs State)>();
+        var viewer = new Mock<IViewer>();
+        viewer.Setup(v => v.OnCharacterChanged(It.IsAny<object>(), It.IsAny<Player.ViewerCharacterChangedEventArgs>()))
+            .Callback<object, Player.ViewerCharacterChangedEventArgs>((sender, e) => updates.Add(((Player)sender, e)));
+        var game = new Game(4, viewer.Object);
         game.StartCharacterSelection();
-        Assert.Throws<InvalidOperationException>(() => game.OnChoosedPlayerCard(new Player(0, false),
-            new Player.GameChoosedPlayerCardEventArgs { choosedPlayerCard = new KingPlayerCard() }));
-        Assert.Throws<UnchoosedPlayerCard>(() => game.OnChoosedPlayerCard(null,
-            new Player.GameChoosedPlayerCardEventArgs()));
+        updates.Clear();
+        while (game.CurrentChoosingPlayerId is int id)
+            game.ChooseCharacter(id, new BaseGamePrerequisite().Sequence(game.GetAvailableCharacters(id)[0]));
+
+        Assert.Equal(4, updates.Count);
+        Assert.All(updates, update =>
+        {
+            Assert.NotNull(update.State.Character);
+            Assert.Equal(new BaseGamePrerequisite().Sequence(update.State.Character), update.State.Rank);
+        });
+        foreach (int id in game.GetTurnOrder())
+        {
+            game.TakeGold(id);
+            game.EndTurn(id);
+        }
+        Assert.Equal(2, game.RoundNumber);
+        Assert.Equal(8, updates.Count);
+        Assert.All(updates.Skip(4), update =>
+        {
+            Assert.Null(update.State.Character);
+            Assert.Null(update.State.Rank);
+        });
+        Assert.All(game.Players, player => Assert.Equal(2, updates.Count(update => ReferenceEquals(update.Player, player))));
     }
 }

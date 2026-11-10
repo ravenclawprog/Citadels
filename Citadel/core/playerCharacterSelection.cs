@@ -4,18 +4,18 @@ public partial class Player
 {
     internal string? CharacterName => _playerCard?.Name;
 
-    internal int CharacterRank => _playerCard == null
-        ? throw new InvalidOperationException("The player has not chosen a character.")
-        : new BaseGamePrerequisite().Sequence(_playerCard);
+    private int? _characterRank;
 
-    internal void AssignCharacter(IPlayerCard? card) => _playerCard = card;
+    internal int CharacterRank => _characterRank
+        ?? throw new InvalidOperationException("The player has not chosen a character.");
 
-    // A UI may submit a choice after receiving OnPlayerCardToChoose.
-    public void ChoosePlayerCard(IPlayerCard card)
+    private void AssignCharacter(IPlayerCard? card, int? rank = null)
     {
-        ArgumentNullException.ThrowIfNull(card);
-        if (OnGameChoosedPlayerCard == null)
-            throw new InvalidOperationException("The player is not attached to a game.");
-        OnGameChoosedPlayerCard(this, new GameChoosedPlayerCardEventArgs { choosedPlayerCard = card });
+        _characterChoices = null;
+        _turnState = null;
+        _playerCard = card;
+        _characterRank = card == null ? null : rank;
+        OnViewerCharacterChanged?.Invoke(this, new ViewerCharacterChangedEventArgs(
+            card == null ? null : (IPlayerCard)card.Clone(), _characterRank));
     }
 }

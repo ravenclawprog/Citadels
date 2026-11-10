@@ -22,7 +22,7 @@ public partial class Game
 
         _selectionOrder.Clear();
         foreach (var player in _players)
-            player.AssignCharacter(null);
+            AssignPlayerCharacter(player, null);
         PrepareCharacterDeck();
         var crownedPlayer = FindCrownedPlayer()
             ?? throw new InvalidOperationException("The game has no crowned player.");
@@ -46,11 +46,10 @@ public partial class Game
     public void ChooseCharacter(int playerId, int rank)
     {
         Player player = RequireChoosingPlayer(playerId);
-        var prerequisite = new BaseGamePrerequisite();
-        var card = _playerCardsDeck.SingleOrDefault(candidate => prerequisite.Sequence(candidate) == rank)
+        var card = _playerCardsDeck.SingleOrDefault(candidate => GetCharacterRank(candidate) == rank)
             ?? throw new WrongPlayerCard("This character is not available for selection.");
         _playerCardsDeck.Remove(card);
-        player.AssignCharacter(card);
+        AssignPlayerCharacter(player, card, rank);
         _selectionIndex++;
         if (_selectionIndex == _selectionOrder.Count)
         {
@@ -92,15 +91,28 @@ public partial class Game
         OnChoosePlayerCard = player.OnChoosePlayerCard;
         OnChoosePlayerCard(this, new PlayerChoosePlayerCardEventArgs
         {
+            roundNumber = RoundNumber,
+            characters = _playerCardsDeck.Select(card => new CharacterChoice(GetCharacterRank(card), card.Name)).ToList().AsReadOnly(),
             playerCardToChoose = _playerCardsDeck.Select(card => (IPlayerCard)card.Clone()).ToList(),
             playerCardExcludedOpen = _dropPlayerCardsOpen.Select(card => (IPlayerCard)card.Clone()).ToList(),
             numberOfPlayerCardExcludedClose = _dropPlayerCardsClose.Count
         });
     }
 
+    private void AssignPlayerCharacter(Player player, IPlayerCard? card, int? rank = null)
+    {
+        OnAssignCharacter = player.OnCharacterAssigned;
+        OnAssignCharacter(this, new PlayerCharacterAssignedEventArgs(card, rank));
+    }
+
+    private int GetCharacterRank(IPlayerCard card) =>
+        _characterRanks.TryGetValue(card.GetType(), out int rank)
+            ? rank
+            : throw new WrongPlayerCard("Unknown type of Player card:" + card.GetType());
+
     private void PrepareCharacterDeck()
     {
-        _playerCardsDeck = new BaseGamePrerequisite().GeneratePlayerCardDeck();
+        _playerCardsDeck = _characterCards.Select(card => (IPlayerCard)card.Clone()).ToList();
         ListRandomizer.Permutate(ref _playerCardsDeck);
         _dropPlayerCardsOpen.Clear();
         _dropPlayerCardsClose.Clear();

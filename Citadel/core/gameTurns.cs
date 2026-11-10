@@ -41,6 +41,7 @@ public partial class Game
         RequireResourcesNotTaken();
         HasTakenResources = true;
         player.OnAddGold(this, new PlayerAddGoldEventArgs { goldToAdd = 2 });
+        NotifyTurnState();
     }
 
     public IReadOnlyList<ITownCard> DrawTownCards(int playerId)
@@ -53,6 +54,7 @@ public partial class Game
         _drawnTownCards.AddRange(_townCardsDeck.GetRange(0, count));
         _townCardsDeck.RemoveRange(0, count);
         HasTakenResources = true;
+        NotifyTurnState();
         return GetDrawnTownCards(playerId);
     }
 
@@ -75,6 +77,7 @@ public partial class Game
                 _townCardsDeck.Add(_drawnTownCards[i]);
         _drawnTownCards.Clear();
         player.OnAddTownCards(this, new PlayerAddTownCardsEventArgs { addTownCardDeck = [keptCard] });
+        NotifyTurnState();
     }
 
     public void BuildQuarter(int playerId, int handIndex)
@@ -86,12 +89,14 @@ public partial class Game
         player.ValidateBuilding(handIndex);
         HasBuiltThisTurn = true;
         player.Build(handIndex);
+        NotifyTurnState();
     }
 
     public void EndTurn(int playerId)
     {
         RequireActivePlayer(playerId);
         RequireResourcesResolved();
+        NotifyTurnState(PlayerTurnStage.Inactive);
         _turnIndex++;
         if (_turnIndex < _turnOrder.Count)
         {
@@ -142,7 +147,25 @@ public partial class Game
         HasTakenResources = false;
         HasBuiltThisTurn = false;
         var player = _turnOrder[_turnIndex];
+        NotifyTurnState();
         TurnStarted?.Invoke(this, new TurnStartedEventArgs(player.GetId(), player.CharacterRank, _roundNumber));
+    }
+
+    private void NotifyTurnState()
+    {
+        var stage = _drawnTownCards.Count != 0 ? PlayerTurnStage.KeepTownCard
+            : !HasTakenResources ? PlayerTurnStage.TakeResources : PlayerTurnStage.TurnActions;
+        NotifyTurnState(stage);
+    }
+
+    private void NotifyTurnState(PlayerTurnStage stage)
+    {
+        var player = _turnOrder[_turnIndex];
+        OnTurnStateChanged = player.OnTurnStateChanged;
+        OnTurnStateChanged(this, new PlayerTurnStateChangedEventArgs(
+            RoundNumber, stage, player.CharacterName!, player.CharacterRank,
+            stage == PlayerTurnStage.TurnActions && !HasBuiltThisTurn,
+            _drawnTownCards.Select(card => (ITownCard)card.Clone()).ToList().AsReadOnly()));
     }
 
     private void ResetTurnState()

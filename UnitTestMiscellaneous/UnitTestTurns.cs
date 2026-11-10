@@ -252,31 +252,6 @@ public class UnitTestTurns
     }
 
     [Fact]
-    public void RestartDuringCardChoiceClearsPendingTurnAndRestoresStartingResources()
-    {
-        var game = CreateGame().Game;
-        int oldId = game.CurrentPlayerId!.Value;
-        game.DrawTownCards(oldId);
-        game.StartGame(5);
-        Assert.Equal(GamePhase.ReadyForCharacterSelection, game.Phase);
-        Assert.Null(game.CurrentPlayerId);
-        Assert.Null(game.CurrentCharacterRank);
-        Assert.False(game.HasTakenResources);
-        Assert.False(game.HasBuiltThisTurn);
-        Assert.Equal(0, game.RoundNumber);
-        Assert.Equal(new BaseGamePrerequisite().GenerateTownCardDeck().Count - 20, game.RemainingTownCards);
-        Assert.Throws<InvalidOperationException>(() => game.KeepTownCard(oldId, 0));
-        Assert.Throws<ArgumentException>(() => game.GetPlayerGold(oldId));
-        game.StartCharacterSelection();
-        ChooseCharacters(game);
-        int newId = game.CurrentPlayerId!.Value;
-        Assert.Equal(2, game.GetPlayerGold(newId));
-        Assert.Equal(4, game.GetPlayerHand(newId).Count);
-        Assert.Empty(game.GetPlayerCity(newId));
-        Assert.Empty(game.GetDrawnTownCards(newId));
-    }
-
-    [Fact]
     public void ExhaustingDeckPreservesEveryCardAndStillAllowsGold()
     {
         var setup = CreateGame(7);

@@ -41,14 +41,6 @@ public partial class Player
             AttachViewer(viewer);            
         }
     }
-    ~Player()
-    {
-        if (_viewer != null)
-        {
-            DetachViewer(_viewer);            
-        }
-
-    }
     internal void Build(int index)
     {
         ValidateBuilding(index);
@@ -140,6 +132,8 @@ public partial class Player
     private void AttachViewer(IViewer viewer)
     {
 
+        OnViewerCharacterChanged += viewer.OnCharacterChanged;
+        OnViewerTurnStateChanged += viewer.OnTurnStateChanged;
         OnViewerPlayerCardsToChoose += viewer.OnPlayerCardToChoose;
         OnViewerAttach += viewer.OnAttach;
         OnViewerDetach += viewer.OnDettach;
@@ -151,6 +145,14 @@ public partial class Player
         if (OnViewerAttach != null)
         {
             OnViewerAttach(this, new ViewerAttachEventArgs() { playerId = Id, playerName = Name });
+            viewer.OnCoronationChange(this, new ViewerCoronationChange { hasCrown = Crown });
+            viewer.OnGoldUpdated(this, new ViewerGoldUpdatedEventArgs { currentGoldOfPlayer = Gold });
+            viewer.OnTownCardDeckUpdated(this, new ViewerTownCardDeckUpdatedEventArgs { townCardDeck = HandSnapshot.ToList() });
+            viewer.OnBuildedTownUpdated(this, new ViewerBuildedTownUpdatedEventArgs { buildedTown = GetOwnCity() });
+            viewer.OnCharacterChanged(this, new ViewerCharacterChangedEventArgs(
+                _playerCard == null ? null : (IPlayerCard)_playerCard.Clone(), _characterRank));
+            if (_turnState != null) viewer.OnTurnStateChanged(this, _turnState);
+            if (_characterChoices != null) viewer.OnPlayerCardToChoose(this, _characterChoices);
         }
     }
     private void DetachViewer(IViewer viewer)
@@ -159,6 +161,8 @@ public partial class Player
         {
             OnViewerDetach(this, new ViewerDetachEventArgs() { });
         }
+        OnViewerCharacterChanged -= viewer.OnCharacterChanged;
+        OnViewerTurnStateChanged -= viewer.OnTurnStateChanged;
         OnViewerPlayerCardsToChoose -= viewer.OnPlayerCardToChoose;
         OnViewerAttach -= viewer.OnAttach;
         OnViewerDetach -= viewer.OnDettach;
@@ -200,4 +204,30 @@ public partial class Player
     {
         return Crown;
     }
+    private IController? _controller;
+
+    public void SetController(IController controller)
+    {
+        ArgumentNullException.ThrowIfNull(controller);
+        _controller = controller;
+    }
+
+    public void DetachViewer()
+    {
+        if (_viewer == null) return;
+        DetachViewer(_viewer);
+        _viewer = null;
+    }
+
+    public void SetViewer(IViewer viewer)
+    {
+        ArgumentNullException.ThrowIfNull(viewer);
+        if (ReferenceEquals(_viewer, viewer)) return;
+        if (_viewer != null) DetachViewer(_viewer);
+        _viewer = viewer;
+        AttachViewer(viewer);
+    }
+
+    private ViewerTurnStateChangedEventArgs? _turnState;
+    private ViewerPlayerCardsToChooseEventArgs? _characterChoices;
 }

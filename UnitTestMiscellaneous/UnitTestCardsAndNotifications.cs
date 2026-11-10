@@ -27,6 +27,8 @@ public class UnitTestCardsAndNotifications
                 It.IsAny<Player.ViewerTownCardDeckUpdatedEventArgs>()))
             .Callback<object, Player.ViewerTownCardDeckUpdatedEventArgs>((_, e) => snapshots.Add(e.townCardDeck));
         var player = new Player(0, false, viewer: viewer.Object);
+        Assert.Empty(Assert.Single(snapshots));
+        snapshots.Clear();
         var card = new TownCard(QuarterType.Commercial, 1, "Tavern");
         player.OnAddTownCards(null, new Game.PlayerAddTownCardsEventArgs { addTownCardDeck = [card] });
         player.OnAddTownCards(null, new Game.PlayerAddTownCardsEventArgs { addTownCardDeck = [card] });

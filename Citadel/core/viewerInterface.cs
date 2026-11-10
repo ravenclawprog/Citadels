@@ -2,6 +2,9 @@ namespace Citadel
 {
     public interface IViewer
     {
+        void OnCharacterChanged(object? sender, Player.ViewerCharacterChangedEventArgs e);
+        void OnTurnStateChanged(object? sender, Player.ViewerTurnStateChangedEventArgs e);
+        void OnActionRejected(Exception error);
         public void OnAttach(object? sender, Player.ViewerAttachEventArgs e);
         public void OnDettach(object? sender, Player.ViewerDetachEventArgs e);
         public void OnChangeName(object? sender, Player.ViewerChangeNameEventArgs e);
